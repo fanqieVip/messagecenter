@@ -150,5 +150,5 @@
 ```
 #### Gradle
 ```Xml
- 'com.fanjun:messagecenter:1.0.0'
+ implementation 'com.fanjun:messagecenter:1.0.0'
 ```
