@@ -143,12 +143,12 @@
 ```Xml
 <dependency>
   <groupId>com.fanjun</groupId>
-  <artifactId>messagecenter</artifactId>
+  <artifactId>keeplive</artifactId>
   <version>1.0.0</version>
   <type>pom</type>
 </dependency>
 ```
 #### Gradle
 ```Xml
-implementation 'com.fanjun:messagecenter:1.0.0'
+implementation 'com.fanjun:keeplive:1.0.0'
 ```
