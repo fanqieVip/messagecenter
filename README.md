@@ -1,11 +1,16 @@
 # MessageCenter for Android 安卓消息中心组件
 ## 支持消息多订阅、不依赖上下文、集成了socket通讯（收发socket消息与普通消息无区别）、使用者可以实现socket拦截器实现数据自由拆装和重连机制
-
+## 更新日志
+### 【1.0.4】 2018-12-10 
+#### 1.新增Socket自动重连，重连机制基于屏幕广播、网络广播及定时器，经过多个项目验证，已稳定可靠!
+#### 2.通过MessageCenter.setSocketCheckIntervalTime(10 * 1000)设置定时器循环时间
+#### 3.简化老版本中的SocketInterceptor拦截器，除receiveServerMsg方法以外都为可选实现
 ### 使用方式
 ```Java
          //初始化消息中心
         //socket连接模块集成的是netty框架
-        MessageCenter.create()
+        MessageCenter.create(context)
+                .setSocketCheckIntervalTime(10 * 1000)      //设置socket自检定时器时间，默认为10秒
                 .host("192.168.0.1").port(8088)             //设置socket连接参数，不需要使用socket也可以不设置
                 .socketInterceptor(new MySocketInterceptor());//绑定socket拦截器，不需要使用socket也可以不设置
 
@@ -101,19 +106,12 @@
             return null;
         }
         /**
-         * 这里表示连接失败，一般来说到这里就是socket已中断了，需要做相应的重连处理
-         * @param exception 程序内部错误异常或网络断开异常
+         * socket的连接状态监听
+         * @param connetState  CONNECTING：连接中 INTERRUPT：已断开 SUCCESS：连接成功 CANCEL：已取消（主动调用MessageCenter.disConnectSocket()会调用）
+         * @param exception 如已断开会返回错误信息
          */
         @Override
-        public void connectionInterrupt(Exception exception) {
-
-        }
-
-        /**
-         * 这里表示连接成功了，这里如果需要做身份认证的话可以直接用MessageCenter.sendMessage的方式发送认证数据包
-         */
-        @Override
-        public void connectionSuccess() {
+        public void connectState(ConnetState connetState, Exception exception) {
 
         }
     }
@@ -144,11 +142,11 @@
 <dependency>
   <groupId>com.fanjun</groupId>
   <artifactId>messagecenter</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.4</version>
   <type>pom</type>
 </dependency>
 ```
 #### Gradle
 ```Xml
- implementation 'com.fanjun:messagecenter:1.0.0'
+ implementation 'com.fanjun:messagecenter:1.0.4'
 ```
