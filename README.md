@@ -1,6 +1,8 @@
 # MessageCenter for Android 安卓消息中心组件
 ## 支持消息多订阅、不依赖上下文、集成了socket通讯（收发socket消息与普通消息无区别）、使用者可以实现socket拦截器实现数据自由拆装和重连机制
 ## 更新日志
+### 【1.0.5】 2018-12-11 
+#### 1.修改SocketInterceptor的receiveServerMsg方法，不再要求返回值
 ### 【1.0.4】 2018-12-10 
 #### 1.新增Socket自动重连，重连机制基于屏幕广播、网络广播及定时器，经过多个项目验证，已稳定可靠!
 #### 2.通过MessageCenter.setSocketCheckIntervalTime(10 * 1000)设置定时器循环时间
@@ -142,11 +144,11 @@
 <dependency>
   <groupId>com.fanjun</groupId>
   <artifactId>messagecenter</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
   <type>pom</type>
 </dependency>
 ```
 #### Gradle
 ```Xml
- implementation 'com.fanjun:messagecenter:1.0.4'
+ implementation 'com.fanjun:messagecenter:1.0.5'
 ```
