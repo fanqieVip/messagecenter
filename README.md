@@ -98,8 +98,8 @@
          * @return
          */
         @Override
-        public List<ReceiveMsg> receiveServerMsg(String msg) {
-            return null;
+        public void receiveServerMsg(String msg) {
+            
         }
 
         /**
