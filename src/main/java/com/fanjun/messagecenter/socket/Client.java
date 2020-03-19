@@ -3,6 +3,7 @@ package com.fanjun.messagecenter.socket;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -21,6 +22,7 @@ public class Client extends Thread {
     private int port;
     EventLoopGroup workerGroup;
     SocketInterceptor socketInterceptor;
+    ConnectionAssistant connectionAssistant;
 
     public Client(String host, int port) {
         super();
@@ -29,12 +31,12 @@ public class Client extends Thread {
         workerGroup = new NioEventLoopGroup();
     }
 
-    public SocketInterceptor getSocketInterceptor() {
-        return socketInterceptor;
-    }
-
     public void setSocketInterceptor(SocketInterceptor socketInterceptor) {
         this.socketInterceptor = socketInterceptor;
+    }
+
+    public void setConnectionAssistant(ConnectionAssistant connectionAssistant) {
+        this.connectionAssistant = connectionAssistant;
     }
 
     @Override
@@ -52,7 +54,7 @@ public class Client extends Thread {
      */
     public void disConnect() {
         workerGroup.shutdownGracefully();
-        if (this.isAlive()) {
+        if (this.isAlive() || !this.isInterrupted()) {
             this.interrupt();
         }
     }
@@ -69,14 +71,15 @@ public class Client extends Thread {
             b.channel(NioSocketChannel.class);
             b.option(ChannelOption.SO_KEEPALIVE, true);
             b.option(ChannelOption.TCP_NODELAY, true);
-            b.option(ChannelOption.SO_TIMEOUT, 5000);
+            b.option(ChannelOption.SO_TIMEOUT, 3000);
+            b.option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
                     //心跳
                     ch.pipeline().addLast(new IdleStateHandler(10, 10, 20, TimeUnit.SECONDS));
                     //处理器
-                    clientHandler = new ClientHandler(socketInterceptor);
+                    clientHandler = new ClientHandler(socketInterceptor, connectionAssistant);
                     ch.pipeline().addLast(clientHandler);
                 }
             });
@@ -86,8 +89,8 @@ public class Client extends Thread {
             future.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
-            if(socketInterceptor != null && clientHandler != null){
-                socketInterceptor.connectionInterrupt(e);
+            if (connectionAssistant != null) {
+                connectionAssistant.connectionInterrupt(e);
             }
         } finally {
             workerGroup.shutdownGracefully();
@@ -97,5 +100,4 @@ public class Client extends Thread {
     public ClientHandler getClientHandler() {
         return clientHandler;
     }
-
 }

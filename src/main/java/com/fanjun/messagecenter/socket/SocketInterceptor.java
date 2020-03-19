@@ -1,35 +1,72 @@
 package com.fanjun.messagecenter.socket;
 
+import android.support.annotation.NonNull;
+
+import java.sql.Connection;
 import java.util.List;
 
 /**
  * socket服务拦截器
  */
-public interface SocketInterceptor {
+public abstract class SocketInterceptor {
+    //缓存的粘包数据
+    private String cutData = null;
+
     /**
      * 收到服务器推送的数据
      *
      * @param msg 收到的数据包
-     * @return 推送数据集合
      */
-    List<ReceiveMsg> receiveServerMsg(String msg);
+    public abstract void receiveServerMsg(String msg);
 
     /**
      * 心跳包
      *
      * @return 发送的心跳数据包
      */
-    String heartbeat();
+    public String heartbeat() {
+        return null;
+    }
 
     /**
-     * socket连接已断开
+     * 把发送socket的对象包装成字符串
      *
-     * @param exception 程序内部错误异常或网络断开异常
+     * @param msgObj 发送socket的obj对象
+     * @return 最终发送的socket的字符串
      */
-    void connectionInterrupt(Exception exception);
+    public abstract String packageMsg(Object msgObj);
 
     /**
-     * 连接成功
+     * 返回分包开始标识符
+     *
+     * @return
      */
-    void connectionSuccess();
+    public String getStartTag() {
+        return null;
+    }
+
+    /**
+     * 返回分包结束标识符
+     *
+     * @return
+     */
+    public String getEndTag() {
+        return null;
+    }
+
+    protected String getCutData() {
+        return cutData == null ? "" : cutData;
+    }
+
+    protected void setCutData(String cutData) {
+        this.cutData = cutData;
+    }
+
+    /**
+     * 连接状态
+     */
+    public void connectState(ConnetState connetState, Exception e) {
+    }
+
+    ;
 }
