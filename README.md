@@ -1,15 +1,9 @@
 # MessageCenter for Android 安卓消息中心组件
-## 支持消息多订阅、不依赖上下文、集成了socket通讯（收发socket消息与普通消息无区别）、使用者可以实现socket拦截器实现数据自由拆装和重连机制
-## 更新日志
-### 【1.0.11】 2018-12-14 
-#### 1.修复自动重连可能引发并发的问题
-#### 2.修改SocketInterceptor拦截器的receiveServerMsg和connectState方法为在UI线程执行
-### 【1.0.5】 2018-12-11 
-#### 1.修改SocketInterceptor的receiveServerMsg方法，不再要求返回值
-### 【1.0.4】 2018-12-10 
-#### 1.新增Socket自动重连，重连机制基于屏幕广播、网络广播及定时器，经过多个项目验证，已稳定可靠!
-#### 2.通过MessageCenter.setSocketCheckIntervalTime(10 * 1000)设置定时器循环时间
-#### 3.简化老版本中的SocketInterceptor拦截器，除receiveServerMsg方法以外都为可选实现
+## 支持消息多订阅、不依赖上下文、集成了socket通讯（收发socket消息与普通消息无区别）
+## 使用者可以实现socket拦截器实现数据自由拆装和重连机制
+## Socket可自动重连，重连机制基于屏幕广播、网络广播及定时器
+## Socket自动分包和拆包（采用的开始结束符识别策略）
+
 ### 使用方式
 ```Java
          //初始化消息中心
@@ -111,6 +105,29 @@
             return null;
         }
         /**
+         * 把发送socket的对象包装成服务器期望的字符串
+         * @param msgObj 发送socket的obj对象
+         * @return 最终发送的socket的字符串
+         */
+         public String packageMsg(Object msgObj){
+             return null;
+         }
+         /**
+          * 返回分包开始标识符（如果不需要处理分包拆包，可以不处理）
+          * @return
+         */
+         public String getStartTag() {
+             return null;
+         }
+
+         /**
+          * 返回分包结束标识符（如果不需要处理分包拆包，可以不处理）
+          * @return
+          */
+          public String getEndTag() {
+              return null;
+          }
+        /**
          * socket的连接状态监听
          * @param connetState  CONNECTING：连接中 INTERRUPT：已断开 SUCCESS：连接成功 CANCEL：已取消（主动调用MessageCenter.disConnectSocket()会调用）
          * @param exception 如已断开会返回错误信息
@@ -127,16 +144,7 @@
     @com.fanjun.messagecenter.annotion.MHanderReceiveTag <methods>;
     @com.fanjun.messagecenter.annotion.MHanderSendTag <methods>;
 }
--keepattributes Signature
 -keepattributes *Annotation*
--keep class sun.misc.Unsafe { *; }
--keep class com.google.gson.stream.** { *; }
--keep class com.google.gson.examples.android.model.** { *; }
--keep class com.google.gson.* { *;}
--dontwarn com.google.gson.**
--keepclassmembers class * {
-   public <init> (org.json.JSONObject);
-}
 -keepattributes Signature,InnerClasses
 -keepclasseswithmembers class io.netty.** {*;}
 -keepnames class io.netty.** {*;}
@@ -147,13 +155,13 @@
 <dependency>
   <groupId>com.fanjun</groupId>
   <artifactId>messagecenter</artifactId>
-  <version>1.0.11</version>
+  <version>1.0.17</version>
   <type>pom</type>
 </dependency>
 ```
 #### Gradle
 ```Xml
- implementation 'com.fanjun:messagecenter:1.0.11'
+ implementation 'com.fanjun:messagecenter:1.0.17'
 ```
 #### 联系我
 ```Xml
