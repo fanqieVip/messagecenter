@@ -1,0 +1,109 @@
+<p id="cutData"></p>
+<p id="handData"></p>
+<script language="javascript" type="text/javascript">
+	//开始符
+    var START_TAG = "&1&1";
+    //结束符
+    var END_TAG = "&2&2";
+	
+	//socket收到的源数据
+    var sourceData = "&2123123123123" + START_TAG + "123是你吗" + END_TAG + START_TAG + "你好你好" + END_TAG + START_TAG + "打趴" + END_TAG + END_TAG + "123";
+    //缓存的粘包数据
+    var cutData = START_TAG + "叽叽歪歪" + "&2";
+
+    //新数据拼接老的黏包，注意拼接数据，老的在前面
+    var newSourceData = cutData + sourceData;
+    //查找新数据源需要立即分发的数据，一组START_TAG + END_TAG构成一个分发数据，但要注意处理中间值为空的情况，在极端情况可能出现无效数据，注意处理异常
+    var handData = findHandData(newSourceData, START_TAG, END_TAG);
+    //整理出最新的粘包数据
+    cutData = sortCutData(newSourceData, START_TAG, END_TAG);
+	
+	document.getElementById("cutData").innerHTML = "新的粘包数据："+cutData;
+	document.getElementById("handData").innerHTML = "待分发数据："+handData;
+	
+	
+	/**
+     * 查找符合开始和结束标识的字符串
+     * 如“startTag你好endTagstartTag朋友endTag”，得到“你好、朋友”
+     *
+     * @param sourceData
+     * @param startTag
+     * @param endTag
+     * @return
+     */
+    function findHandData(sourceData, startTag, endTag) {
+        var handData = [];
+        var regex = startTag + ".*?" + endTag;
+        var tempSourceData = sourceData;
+        var data = null;
+        while (true) {
+            if (!isEmpty(data)) {
+                tempSourceData = tempSourceData.substring(tempSourceData.indexOf(data) + data.length, tempSourceData.length);
+            }
+            data = filerStartEnd(tempSourceData, regex);
+            if (!isEmpty(data)) {
+                //如果存在多个startTag开始符异常数据时，以最接近endTag结束符号的startTag开始符号为准
+                if (data.indexOf(startTag) < data.lastIndexOf(startTag)) {
+                    var tempData = data.substring(data.lastIndexOf(startTag), data.length);
+                    handData.push(tempData);
+                } else {
+                    handData.push(data);
+                }
+
+            } else {
+                break;
+            }
+        }
+        return handData;
+    };
+	
+	/**
+     * 递归取出符合首位符号规则的字符串
+     *
+     * @param sourceData
+     * @param regex
+     * @return
+     */
+    function filerStartEnd(sourceData, regex) {
+		var t = sourceData.match(regex);
+		if(!isEmpty(t) && t.length>0){
+			return t[0];
+		}else{
+			return null;
+		}
+    };
+	/**
+     * 整理粘包数据
+     *
+     * @param sourceData
+     * @param startTag
+     * @param endTag
+     * @return
+     */
+    function sortCutData(sourceData, startTag, endTag) {
+        var newSourceData = sourceData;
+        var startTagLastPosition = newSourceData.lastIndexOf(startTag);
+        var endTagLastPosition = newSourceData.lastIndexOf(endTag);
+        if (startTagLastPosition >= 0) {
+            //如果存在startTag标识，但不存在endTag标识，则将startTag标识以后的作为粘包数据
+            if (endTagLastPosition < 0) {
+                newSourceData = newSourceData.substring(startTagLastPosition, newSourceData.length);
+            } else {
+                //如果存在startTag/endTag标识，但startTag在endTag后，则以startTag标识以后的作为粘包数据
+                if (endTagLastPosition < startTagLastPosition) {
+                    newSourceData = newSourceData.substring(startTagLastPosition, newSourceData.length);
+                } else {
+                    //如果存在startTag/endTag标识，但startTag在endTag前，则后续数据可能为不完整的粘包数据
+                    newSourceData = newSourceData.substring(endTagLastPosition, newSourceData.length);
+                }
+            }
+        }
+        return newSourceData;
+    };
+	function isEmpty(data){
+		return data == null || data == undefined || data == '';
+	};
+	
+	
+	//document.getElementById("a").innerHTML = "123123213";
+</script>
